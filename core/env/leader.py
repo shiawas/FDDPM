@@ -3,6 +3,7 @@ from typing import Optional
 
 import jax
 from jax import numpy as jnp
+import jax.random as random
 
 class PlanarMultiAgentEnv:
     def __init__(self, config: dict = None, state: Optional[jnp.ndarray] = None):
@@ -13,7 +14,15 @@ class PlanarMultiAgentEnv:
 
         self.default_state = jnp.zeros((self.num_agents, 6))
         self.state = self.default_state if state is None else state
-
+    def sample_random_action(self):
+        self.key, subkey = random.split(self.key)
+        # Random action trong [-1, 1]
+        return random.uniform(
+            subkey,
+            shape=(self.num_agents, 3),
+            minval=-1.0,
+            maxval=1.0,
+        )
     def reset(self):
         self.state = self.default_state
         return self.state
