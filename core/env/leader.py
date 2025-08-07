@@ -66,3 +66,8 @@ class PlanarMultiAgentEnvWrapper:
         obstacle = self.get_obstacle_encoding()
         return jnp.concatenate([next_state, obstacle])
 
+    def get_obstacle_encoding(self):
+        # Tạm thời không có chướng ngại vật
+        return jnp.zeros(6)
+
+
