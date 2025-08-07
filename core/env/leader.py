@@ -69,5 +69,9 @@ class PlanarMultiAgentEnvWrapper:
     def get_obstacle_encoding(self):
         # Tạm thời không có chướng ngại vật
         return jnp.zeros(6)
+    
+    def sample_random_action(self):
+        return self.env.sample_random_action().reshape(-1)
+
 
 
