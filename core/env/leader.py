@@ -10,13 +10,14 @@ class PlanarMultiAgentEnv:
             self.num_agents = 2
         else:
             self.num_agents = config["simulator"]["n_agents"]
-        
-        if state is None:
-            # init state: [x, x_dot, y, y_dot] per agent
-            self.state = jnp.zeros((2, 6))
-        else:
-            self.state = state
-    
+
+        self.default_state = jnp.zeros((self.num_agents, 6))
+        self.state = self.default_state if state is None else state
+
+    def reset(self):
+        self.state = self.default_state
+        return self.state
+
     @partial(jax.jit, static_argnums=0)
     def step(self, control: jnp.ndarray, dt: float = 0.05):
         """
@@ -48,22 +49,18 @@ class PlanarMultiAgentEnv:
         self.state = new_state
         return new_state
 
-class PlanarMultiAgentEnv:
-    def __init__(self, config: dict = None, state: Optional[jnp.ndarray] = None):
-        if config is None:
-            self.num_agents = 2
-        else:
-            self.num_agents = config["simulator"]["n_agents"]
-
-        self.default_state = jnp.zeros((self.num_agents, 6))
-        self.state = self.default_state if state is None else state
+class PlanarMultiAgentEnvWrapper:
+    def __init__(self, config):
+        self.env = PlanarMultiAgentEnv(config)
+        self.state_dim = 6 * config["simulator"]["n_agents"]
+        self.action_dim = 3 * config["simulator"]["n_agents"]
 
     def reset(self):
-        self.state = self.default_state
-        return self.state
+        obs = self.env.reset().reshape(-1)
+        obstacle = self.get_obstacle_encoding() 
+        return jnp.concatenate([obs, obstacle])
 
-    @partial(jax.jit, static_argnums=0)
-    def step(self, control: jnp.ndarray, dt: float = 0.05):
+    def step(self, action):
         action = action.reshape((self.env.num_agents, 3))
         next_state = self.env.step(action).reshape(-1)
         obstacle = self.get_obstacle_encoding()
