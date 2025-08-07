@@ -14,6 +14,9 @@ class PlanarMultiAgentEnv:
 
         self.default_state = jnp.zeros((self.num_agents, 6))
         self.state = self.default_state if state is None else state
+
+        self.key = jax.random.PRNGKey(0)  # hoặc dùng seed khác nếu muốn
+
     def sample_random_action(self):
         self.key, subkey = random.split(self.key)
         # Random action trong [-1, 1]
