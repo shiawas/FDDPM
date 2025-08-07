@@ -1,0 +1,64 @@
+name: "planar_multiagent"
+
+pred_horizon: 96
+obs_horizon: 2
+action_horizon: 10
+
+controller:
+  common:
+    sampling_time: 0.1
+    use_single_step_inference: true
+  networks:
+    obs_dim: 12       # 6 per agent * 2
+    action_dim: 6     # 3 per agent * 2
+    obstacle_encode_dim: 49
+  noise_scheduler:
+    type: "ddpm"
+    ddpm:
+      num_train_timesteps: 100 # number of diffusion iterations
+      beta_schedule: "squaredcos_cap_v2"
+      clip_sample: true # required when predict_epsilon=False
+      prediction_type: "epsilon"
+    ddim: # faster inference
+      num_train_timesteps: 100
+      beta_schedule: "squaredcos_cap_v2"
+      clip_sample: true
+      prediction_type: "epsilon"
+    dpmsolver:  # faster inference, experimental
+      num_train_timesteps: 100
+      beta_schedule: "squaredcos_cap_v2"
+      prediction_type: "epsilon"
+      use_karras_sigmas: true
+
+cbf_clf_controller:
+  denoising_guidance_step: 100 # equals num_train_timesteps
+  cbf_alpha: 10.0 
+  clf_gamma: 0.03
+  penalty_slack_cbf: 1.0e+3
+  penalty_slack_clf: 1.0
+
+trainer:
+  use_ema: true
+  batch_size: 256
+  optimizer:
+    name: "adamw"
+    learning_rate: 1.0e-4
+    weight_decay: 1.0e-6
+  lr_scheduler:
+    name: "cosine"
+    num_warmup_steps: 500
+
+dataloader:
+  batch_size: 256
+
+normalizer:
+  action:
+    min: [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0]
+    max: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+  observation:
+    min: [-10.0] * 61
+    max: [10.0] * 61
+
+simulator:
+  n_agents: 2
+  dt: 0.05
