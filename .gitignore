@@ -1,0 +1,6 @@
+
+*.pyc
+tmp_imgs/*.*
+*-checkpoint.py
+*-checkpoint.ipynb
+*-checkpoint.yaml
